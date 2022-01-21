@@ -47,7 +47,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: myapp
+      app: web
   template:
     metadata:
       labels:
