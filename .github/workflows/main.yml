@@ -1,0 +1,46 @@
+name: CI-CD
+
+on:
+  push:
+    branches: [ main ]
+    
+  workflow_dispatch:
+
+jobs:
+  CI:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Docker Login
+        uses: docker/login-action@v1.12.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_PWB }}
+          
+      - name: Docker Build and Push
+        uses: docker/build-push-action@v2.7.0
+        with:
+          context: ./src
+          file: ./src/Dockerfile
+          push: true
+          tags: 
+            vitoralmeida0205/rotten-potatoes: latest
+            vitoralmeida0205/rotten-potatoes: ${{ github.run_number }}            
+  CD:          
+    needs: [CI]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Kubernetes Set Context
+        uses: Azure/k8s-set-context@v2
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG }}ccccc
+          
+      - name: Kubernetes Set Context
+        uses: Azure/k8s-set-context@v2
+        with:
+          images: vitoralmeida0205/rotten-potatoes: ${{ github.run_number }}  
+          manifests: |
+            k8s/deployment.yaml
+    
